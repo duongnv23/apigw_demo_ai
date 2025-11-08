@@ -1,0 +1,36 @@
+{
+  "Contract": {
+    "CBContractCode": "000285120",
+    "FIContractCode": ""
+  },
+  "Subject": {
+    "Person": {
+      "Name": "KHV FCBV 012371111111",
+      "Gender": "M",
+      "DateOfBirth": "30071972",
+      "PlaceOfBirth": "BO CONG AN",
+      "CountryOfBirth": "VN",
+      "IDCard": "012371111111",
+      "IDCard2": "",
+      "TIN": "",
+      "Address": {
+        "Main": {
+          "FullAddress": "DIA CHI 11111111"
+        },
+        "Additional": {
+          "FullAddress": ""
+        }
+      },
+      "Document": {
+        "Type": "",
+        "Number": "",
+        "DateIssued": "",
+        "CountryIssued": "VN"
+      },
+      "Reference": {
+        "Number": ""
+      }
+    }
+  },
+  "Role": "C"
+}

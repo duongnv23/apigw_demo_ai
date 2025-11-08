@@ -1,11 +1,11 @@
 ### Technical Stack — apigw
 
-Generated: 2025-11-08 14:52
+Generated: 2025-11-08 15:04
 
 ---
 
 #### Overview
-A lightweight API Gateway project built with Spring Boot and Spring Cloud Gateway (WebMVC variant), targeting Java 21 and managed with Maven. The repository also includes a Postman collection and a human-readable API summary under `.spec/`.
+A lightweight API Gateway built on Spring Boot and Spring Cloud Gateway (Reactive/WebFlux), targeting Java 21 and managed with Maven. The repo also includes a Postman collection and a human‑readable API summary under `.spec/`.
 
 ---
 
@@ -18,20 +18,31 @@ A lightweight API Gateway project built with Spring Boot and Spring Cloud Gatewa
 #### Core Frameworks
 - Spring Boot 3.5.7 (parent POM)
 - Spring Cloud 2025.0.0 (via `spring-cloud-dependencies` BOM)
-- Spring Cloud Gateway — WebMVC variant (`spring-cloud-starter-gateway-server-webmvc`)
-  - Note: This is the Servlet-based (blocking) flavor, not the reactive WebFlux gateway.
+- Spring Cloud Gateway — Reactive (`org.springframework.cloud:spring-cloud-starter-gateway`)
+- Spring WebFlux (`org.springframework.boot:spring-boot-starter-webflux`)
+- Spring Boot Actuator (`org.springframework.boot:spring-boot-starter-actuator`)
+- Resilience4j Circuit Breaker for Reactor (`org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j`)
 
 ---
 
 #### Key Libraries (Dependencies)
-- `org.springframework.boot:spring-boot-starter-web`
-  - Spring MVC, embedded server (Tomcat by default), JSON via Jackson
-- `org.springframework.cloud:spring-cloud-starter-gateway-server-webmvc`
-  - Gateway routing, filters, predicates on top of MVC stack
+- `org.springframework.cloud:spring-cloud-starter-gateway`
+  - Reactive API gateway (Netty server by default via WebFlux)
+- `org.springframework.boot:spring-boot-starter-webflux`
+  - Reactive web stack based on Project Reactor
+- `org.springframework.boot:spring-boot-starter-actuator`
+  - Health checks, metrics, monitoring endpoints
+- `org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j`
+  - Circuit breaker, retry, rate limiting on Reactor
+- `org.springframework.boot:spring-boot-starter-validation`
+  - Jakarta Bean Validation for request/DTO validation
+- `com.fasterxml.jackson.core:jackson-databind`
+  - JSON processing (explicitly listed in the POM)
 - `org.projectlombok:lombok` (optional, annotation processor)
   - Reduces boilerplate (getters/setters/constructors)
-- `org.springframework.boot:spring-boot-starter-test` (test scope)
-  - JUnit Jupiter, AssertJ, Spring Test utilities
+- Testing:
+  - `org.springframework.boot:spring-boot-starter-test` (test scope)
+  - `io.projectreactor:reactor-test` (test scope)
 
 ---
 
@@ -54,7 +65,8 @@ A lightweight API Gateway project built with Spring Boot and Spring Cloud Gatewa
 #### Configuration
 - Spring Application Properties: `src/main/resources/application.properties`
   - Default profile assumed unless overridden
-  - Add gateway routes and other settings here (e.g., `spring.cloud.gateway.mvc.routes[...]` for WebMVC Gateway)
+  - Define gateway routes and filters here (Reactive gateway): `spring.cloud.gateway.routes[0].id`, `spring.cloud.gateway.routes[0].uri`, `spring.cloud.gateway.routes[0].predicates[0]`, etc.
+  - Actuator endpoints can be exposed via `management.endpoints.web.exposure.include=health,info,...`
 
 ---
 
@@ -90,7 +102,7 @@ A lightweight API Gateway project built with Spring Boot and Spring Cloud Gatewa
 #### Version/Compatibility Notes
 - Spring Boot 3.5.x requires Java 17+; project targets Java 21 (OK)
 - Spring Cloud 2025.0.0 is aligned with Boot 3.5.x (managed via BOM)
-- Gateway Server WebMVC runs on Servlet stack; do not mix with WebFlux Gateway starters
+- Reactive gateway runs on the WebFlux/Netty stack; avoid mixing with Spring MVC (`spring-boot-starter-web`) or the WebMVC gateway starter
 
 ---
 

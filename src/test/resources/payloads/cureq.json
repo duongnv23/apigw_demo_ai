@@ -1,0 +1,13 @@
+{
+  "Contract": {
+    "CBContractCode": "000285120",
+    "FIContractCode": ""
+  },
+  "ContractData": {
+    "ContractPhase": "RQ",
+    "AmountFinancedCapital": "0",
+    "AmountMonthlyInstalment": "0",
+    "NumTotalInstalment": "0",
+    "CodPaymentPeriodicity": "M"
+  }
+}

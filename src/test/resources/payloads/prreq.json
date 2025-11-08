@@ -1,0 +1,34 @@
+{
+  "Subject": {
+    "Person": {
+      "Name": "PHAM QUANG TOI",
+      "Gender": "F",
+      "DateOfBirth": "18071984",
+      "PlaceOfBirth": "TP HO CHI MINH",
+      "CountryOfBirth": "VN",
+      "IDCard": "186132421",
+      "IDCard2": "",
+      "TIN": "",
+      "Address": {
+        "Main": {
+          "FullAddress": "456 DUONG ABC, QUAN 1, TP.HCM"
+        },
+        "Additional": {
+          "FullAddress": ""
+        }
+      },
+      "Document": {
+        "Type": "",
+        "Number": "",
+        "DateIssued": "",
+        "CountryIssued": "VN"
+      },
+      "Reference": {
+        "Number": "0911223344"
+      }
+    }
+  },
+  "Report": {
+    "Type": "1"
+  }
+}
