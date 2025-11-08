@@ -1,0 +1,426 @@
+{
+	"info": {
+		"_postman_id": "fb2aa2db-3a05-402c-b3c5-e5d22178f767",
+		"name": "FCBV_API_VRB",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "7892299"
+	},
+	"item": [
+		{
+			"name": "Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"TOKEN\", pm.response.json().token)"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "user",
+							"value": "fcbvKCI",
+							"description": "KCI username",
+							"type": "text"
+						},
+						{
+							"key": "pass",
+							"value": "Fcbv@2025",
+							"description": "KCI Password",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{UAT_URL}}/login",
+					"host": [
+						"{{UAT_URL}}"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get OTP",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "user",
+							"value": "fcbvT034",
+							"description": "Username",
+							"type": "text"
+						},
+						{
+							"key": "pass",
+							"value": "Fcbv@2025",
+							"description": "Password",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{UAT_URL}}/otp",
+					"host": [
+						"{{UAT_URL}}"
+					],
+					"path": [
+						"otp"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Change Password",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "user",
+							"value": "fcbvT034",
+							"description": "Username",
+							"type": "text"
+						},
+						{
+							"key": "old_pass",
+							"value": "Fcbv@2025",
+							"description": "password old",
+							"type": "text"
+						},
+						{
+							"key": "new_pass",
+							"value": "Fcbv@2025",
+							"description": "password new",
+							"type": "text"
+						},
+						{
+							"key": "otp",
+							"value": "",
+							"description": "OTP from Authen",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{UAT_URL}}/change_pass",
+					"host": [
+						"{{UAT_URL}}"
+					],
+					"path": [
+						"change_pass"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ri_req JSON ( Person)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"Contract\": {\r\n    \"DateRequestContract\": \"06082025\",\r\n    \"OperationType\": \"20\",\r\n    \"CodCurrency\": \"VND\",\r\n    \"Instalment\": {\r\n      \"AmountFinancedCapital\": \"15000000\",\r\n      \"NumTotalInstalment\": \"6\",\r\n      \"CodPaymentPeriodicity\": \"M\"\r\n    }\r\n  },\r\n  \"Subject\": {\r\n    \"Person\": {\r\n      \"Name\": \"PHAM QUANG TOI\",\r\n      \"Gender\": \"F\",\r\n      \"DateOfBirth\": \"18071984\",\r\n      \"PlaceOfBirth\": \"TP HO CHI MINH\",\r\n      \"CountryOfBirth\": \"VN\",\r\n      \"IDCard\": \"186132421\",\r\n      \"IDCard2\": \"\",\r\n      \"TIN\": \"\",\r\n      \"Address\": {\r\n        \"Main\": {\r\n          \"FullAddress\": \"456 DUONG ABC, QUAN 1, TP.HCM\"\r\n        },\r\n        \"Additional\": {\r\n          \"FullAddress\": \"\"\r\n        }\r\n      },\r\n      \"Document\": {\r\n        \"Type\": \"\",\r\n        \"Number\": \"\",\r\n        \"DateIssued\": \"\",\r\n        \"CountryIssued\": \"VN\"\r\n      },\r\n      \"Reference\": {\r\n        \"Number\": \"0911223344\"\r\n      }\r\n    }\r\n  },\r\n  \"Role\": \"A\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{UAT_URL}}/rireq",
+					"host": [
+						"{{UAT_URL}}"
+					],
+					"path": [
+						"rireq"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ri_req JSON ( Company)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"Contract\": {\r\n    \"DateRequestContract\": \"09062025\",\r\n    \"OperationType\": \"31\",\r\n    \"CodCurrency\": \"VND\",\r\n    \"CreditCard\": {\r\n      \"AmountCreditLimitAccount\": \"10000000\",\r\n      \"CodPaymentPeriodicity\": \"M\"\r\n    }\r\n  },\r\n  \"Subject\": {\r\n    \"Company\": {\r\n      \"TradeName\": \"CONG TY TNHH THUONG MAI DICH VU MINH HOANG\",\r\n      \"LegalForm\": \"1\",\r\n      \"TIN\": \"0109876543210\",\r\n      \"BusinessRegistrationNumber\": \"9876543210\",\r\n      \"PlaceOfRegistration\": \"So Ke Hoach Dau Tu Ha Noi\",\r\n      \"Address\": {\r\n        \"Main\": {\r\n          \"FullAddress\": \"So 12, Duong Pham Van Dong, Bac Tu Liem, Ha Noi\"\r\n        },\r\n        \"Additional\": {\r\n          \"FullAddress\": \"Van phong: Tang 3, Toa nha ACB, 56 Le Van Luong, Thanh Xuan, Ha Noi\"\r\n        }\r\n      },\r\n      \"Reference\": {\r\n        \"Number\": \"0988123456\"\r\n      }\r\n    }\r\n  },\r\n  \"Role\": \"A\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{UAT_URL}}/rireq",
+					"host": [
+						"{{UAT_URL}}"
+					],
+					"path": [
+						"rireq"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ri_req JSON ( Individual)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"Contract\": {\r\n    \"DateRequestContract\": \"09062025\",\r\n    \"OperationType\": \"31\",\r\n    \"CodCurrency\": \"VND\",\r\n    \"CreditCard\": {\r\n      \"AmountCreditLimitAccount\": \"10000000\",\r\n      \"CodPaymentPeriodicity\": \"M\"\r\n    }\r\n  },\r\n  \"Subject\": {\r\n    \"IndividualConcern\": {\r\n      \"TradeName\": \"BANH BAO HOAN MY\",\r\n      \"LegalForm\": \"8\",\r\n      \"TIN\": \"1223344551\",\r\n      \"Address\": {\r\n        \"Main\": {\r\n          \"FullAddress\": \"53 đường Tam Trinh phường Yên Sở Thành phố Hà Nội\"\r\n        }\r\n      },\r\n      \"OwnerData\": {\r\n        \"Name\": \"TRAN ANH TUAN\",\r\n        \"DateOfBirth\": \"16041997\",\r\n        \"IDCard\": \"777555666444\",\r\n        \"CountryOfBirth\": \"VN\",\r\n        \"Gender\": \"M\",\r\n        \"Address\": {\r\n          \"Main\": {\r\n            \"FullAddress\": \"21 đường Tam Trinh phường Yên sở thành phố Hà Nội\"\r\n          }\r\n        }\r\n      }\r\n    }\r\n  },\r\n  \"Role\": \"A\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{UAT_URL}}/rireq",
+					"host": [
+						"{{UAT_URL}}"
+					],
+					"path": [
+						"rireq"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ci_req JSON",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"Subject\": {\r\n            \"CBSubjectCode\": \"003190395\",\r\n            \"FISubjectCode\": \"\"\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{UAT_URL}}/cireq",
+					"host": [
+						"{{UAT_URL}}"
+					],
+					"path": [
+						"cireq"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "pr_req JSON",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"Subject\": {\r\n    \"Person\": {\r\n      \"Name\": \"PHAM QUANG TOI\",\r\n      \"Gender\": \"F\",\r\n      \"DateOfBirth\": \"18071984\",\r\n      \"PlaceOfBirth\": \"TP HO CHI MINH\",\r\n      \"CountryOfBirth\": \"VN\",\r\n      \"IDCard\": \"186132421\",\r\n      \"IDCard2\": \"\",\r\n      \"TIN\": \"\",\r\n      \"Address\": {\r\n        \"Main\": {\r\n          \"FullAddress\": \"456 DUONG ABC, QUAN 1, TP.HCM\"\r\n        },\r\n        \"Additional\": {\r\n          \"FullAddress\": \"\"\r\n        }\r\n      },\r\n      \"Document\": {\r\n        \"Type\": \"\",\r\n        \"Number\": \"\",\r\n        \"DateIssued\": \"\",\r\n        \"CountryIssued\": \"VN\"\r\n      },\r\n      \"Reference\": {\r\n        \"Number\": \"0911223344\"\r\n      }\r\n    }\r\n  },\r\n  \"Report\": {\r\n    \"Type\": \"1\"\r\n  }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{UAT_URL}}/prreq",
+					"host": [
+						"{{UAT_URL}}"
+					],
+					"path": [
+						"prreq"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "cu_req JSON",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"Contract\": {\r\n        \"CBContractCode\": \"000285120\",\r\n        \"FIContractCode\": \"\"\r\n    },\r\n    \"ContractData\":{\r\n        \"ContractPhase\":\"RQ\",\r\n        \"AmountFinancedCapital\":\"0\",\r\n        \"AmountMonthlyInstalment\": \"0\",\r\n        \"NumTotalInstalment\": \"0\",\r\n        \"CodPaymentPeriodicity\": \"M\"\r\n    }\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{UAT_URL}}/cureq",
+					"host": [
+						"{{UAT_URL}}"
+					],
+					"path": [
+						"cureq"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ec_req JSON",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"Contract\": {\r\n        \"CBContractCode\": \"000285120\",\r\n        \"FIContractCode\": \"\"\r\n    },\r\n  \"Subject\": {\r\n    \"Person\": {\r\n      \"Name\": \"KHV FCBV 012371111111\",\r\n      \"Gender\": \"M\",\r\n      \"DateOfBirth\": \"30071972\",\r\n      \"PlaceOfBirth\": \"BO CONG AN\",\r\n      \"CountryOfBirth\": \"VN\",\r\n      \"IDCard\": \"012371111111\",\r\n      \"IDCard2\": \"\",\r\n      \"TIN\": \"\",\r\n      \"Address\": {\r\n        \"Main\": {\r\n          \"FullAddress\": \"DIA CHI 11111111\"\r\n        },\r\n        \"Additional\": {\r\n          \"FullAddress\": \"\"\r\n        }\r\n      },\r\n      \"Document\": {\r\n        \"Type\": \"\",\r\n        \"Number\": \"\",\r\n        \"DateIssued\": \"\",\r\n        \"CountryIssued\": \"VN\"\r\n      },\r\n      \"Reference\": {\r\n        \"Number\": \"\"\r\n      }\r\n    }\r\n  },\r\n  \"Role\": \"C\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{UAT_URL}}/ecreq",
+					"host": [
+						"{{UAT_URL}}"
+					],
+					"path": [
+						"ecreq"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "PRODUCT_URL",
+			"value": "https://api.fcbv.vn",
+			"type": "string"
+		},
+		{
+			"key": "UAT_URL",
+			"value": "https://test-api.fcbv.vn",
+			"type": "string"
+		},
+		{
+			"key": "TOKEN",
+			"value": ""
+		}
+	]
+}
