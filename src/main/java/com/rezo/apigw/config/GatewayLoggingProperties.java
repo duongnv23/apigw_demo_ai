@@ -22,6 +22,8 @@ public class GatewayLoggingProperties {
     private List<String> maskedJsonFields = List.of("pass", "old_pass", "new_pass", "otp", "password", "token");
     /** Only log body if Content-Type matches these substrings */
     private List<String> contentTypeIncludes = List.of("application/json", "text/plain", "application/x-www-form-urlencoded", "multipart/form-data");
+    /** Preferred JWT claim keys to read username from */
+    private List<String> usernameClaimKeys = List.of("username", "sub", "user_name");
 
     public boolean isEnabled() { return enabled; }
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
@@ -39,4 +41,6 @@ public class GatewayLoggingProperties {
     public void setMaskedJsonFields(List<String> maskedJsonFields) { this.maskedJsonFields = maskedJsonFields; }
     public List<String> getContentTypeIncludes() { return contentTypeIncludes; }
     public void setContentTypeIncludes(List<String> contentTypeIncludes) { this.contentTypeIncludes = contentTypeIncludes; }
+    public List<String> getUsernameClaimKeys() { return usernameClaimKeys; }
+    public void setUsernameClaimKeys(List<String> usernameClaimKeys) { this.usernameClaimKeys = usernameClaimKeys; }
 }

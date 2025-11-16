@@ -31,6 +31,9 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import java.util.Base64;
 
 @Component
 @RequiredArgsConstructor
@@ -56,9 +59,13 @@ public class LoggingGlobalFilter implements GlobalFilter, Ordered {
         ServerHttpRequest request = exchange.getRequest();
 
         String correlationId = getOrCreateCorrelationId(request.getHeaders());
+        // Extract username for logging (from Basic or Bearer JWT)
+        String username = extractUsername(request);
         ServerWebExchange mutatedExchange = exchange.mutate()
                 .request(builder -> builder.header("X-Correlation-Id", correlationId))
                 .build();
+        // store username in exchange attributes for later logs
+        mutatedExchange.getAttributes().put("log.username", username);
 
         // Capture and possibly log request headers and body
         return decorateRequest(mutatedExchange, correlationId)
@@ -75,13 +82,15 @@ public class LoggingGlobalFilter implements GlobalFilter, Ordered {
         String method = request.getMethod() != null ? request.getMethod().name() : "UNKNOWN";
         URI uri = request.getURI();
 
+        // Resolve username saved earlier
+        String username = safeUsername(exchange.getAttribute("log.username"));
         // Log headers
         if (props.isLogHeaders()) {
             String maskedHeaders = maskHeaders(headers);
-            accessLog.info("[{}] -> {} {}{} Headers: {}", correlationId, method, uri.getPath(),
+            accessLog.info("[{}][user={}] -> {} {}{} Headers: {}", correlationId, username, method, uri.getPath(),
                     uri.getQuery() != null ? ("?" + uri.getQuery()) : "", toSingleLine(maskedHeaders));
         } else {
-            accessLog.info("[{}] -> {} {}{}", correlationId, method, uri.getPath(),
+            accessLog.info("[{}][user={}] -> {} {}{}", correlationId, username, method, uri.getPath(),
                     uri.getQuery() != null ? ("?" + uri.getQuery()) : "");
         }
 
@@ -108,7 +117,8 @@ public class LoggingGlobalFilter implements GlobalFilter, Ordered {
                     cachedBodyRef.set(limited);
                     String bodyStr = new String(limited, StandardCharsets.UTF_8);
                     String maskedBody = maybeMaskBody(headers.getContentType(), bodyStr);
-                    accessLog.info("[{}] -> BODY: {}", correlationId, toSingleLine(maskedBody));
+                    String uname = safeUsername(exchange.getAttribute("log.username"));
+                    accessLog.info("[{}][user={}] -> BODY: {}", correlationId, uname, toSingleLine(maskedBody));
                     return limited;
                 })
                 .map(bytes -> new ServerHttpRequestDecorator(request) {
@@ -141,12 +151,13 @@ public class LoggingGlobalFilter implements GlobalFilter, Ordered {
                                 String masked = maybeMaskBody(contentType, bodyString);
                                 Duration latency = Duration.between(start, Instant.now());
                                 HttpStatusCode status = getStatusCode();
+                                String uname = safeUsername(exchange.getAttribute("log.username"));
                                 if (props.isLogHeaders()) {
-                                    accessLog.info("[{}] <- {} {} ms Headers: {} BODY: {}", correlationId,
+                                    accessLog.info("[{}][user={}] <- {} {} ms Headers: {} BODY: {}", correlationId, uname,
                                             status != null ? status.value() : 0,
                                             latency.toMillis(), toSingleLine(maskHeaders(getHeaders())), toSingleLine(masked));
                                 } else {
-                                    accessLog.info("[{}] <- {} {} ms BODY: {}", correlationId,
+                                    accessLog.info("[{}][user={}] <- {} {} ms BODY: {}", correlationId, uname,
                                             status != null ? status.value() : 0, latency.toMillis(), toSingleLine(masked));
                                 }
                                 return bufferFactory().wrap(bytes);
@@ -156,12 +167,13 @@ public class LoggingGlobalFilter implements GlobalFilter, Ordered {
                 // Fallback: no body or not loggable content type
                 Duration latency = Duration.between(start, Instant.now());
                 HttpStatusCode status = getStatusCode();
+                String uname = safeUsername(exchange.getAttribute("log.username"));
                 if (props.isLogHeaders()) {
-                    accessLog.info("[{}] <- {} {} ms Headers: {}", correlationId,
+                    accessLog.info("[{}][user={}] <- {} {} ms Headers: {}", correlationId, uname,
                             status != null ? status.value() : 0,
                             latency.toMillis(), toSingleLine(maskHeaders(getHeaders())));
                 } else {
-                    accessLog.info("[{}] <- {} {} ms", correlationId,
+                    accessLog.info("[{}][user={}] <- {} {} ms", correlationId, uname,
                             status != null ? status.value() : 0, latency.toMillis());
                 }
                 return super.writeWith(body);
@@ -236,5 +248,95 @@ public class LoggingGlobalFilter implements GlobalFilter, Ordered {
         normalized = normalized.replaceAll("\\p{Cntrl}", " ");
         normalized = normalized.replaceAll(" +", " ");
         return normalized.trim();
+    }
+
+    // === Username extraction helpers ===
+    private String safeUsername(Object val) {
+        String s = (val == null) ? null : String.valueOf(val);
+        if (s == null || s.isBlank()) return "-";
+        return toSingleLine(s);
+    }
+
+    private String extractUsername(ServerHttpRequest request) {
+        HttpHeaders headers = request.getHeaders();
+        String auth = headers.getFirst(HttpHeaders.AUTHORIZATION);
+        String path = request.getURI() != null ? request.getURI().getPath() : "";
+
+        // 1) If login request and Basic auth available -> decode username from Basic
+        if (path != null && path.toLowerCase(Locale.ROOT).contains("/login") && auth != null && auth.toLowerCase(Locale.ROOT).startsWith("basic ")) {
+            String fromBasic = extractFromBasic(auth);
+            if (fromBasic != null) return fromBasic;
+        }
+
+        // 2) Try explicit username headers often used by upstreams/proxies
+        String explicit = firstNonBlank(
+                headers.getFirst("X-Username"),
+                headers.getFirst("X-User"),
+                headers.getFirst("X-Auth-User"),
+                headers.getFirst("Username"),
+                headers.getFirst("User")
+        );
+        if (explicit != null && !explicit.isBlank()) return explicit;
+
+        // 3) Bearer JWT -> parse payload and read preferred claim keys
+        if (auth != null && auth.toLowerCase(Locale.ROOT).startsWith("bearer ")) {
+            String fromJwt = extractFromBearer(auth);
+            if (fromJwt != null) return fromJwt;
+        }
+
+        // 4) Nothing found
+        return "";
+    }
+
+    private String extractFromBasic(String authorization) {
+        try {
+            String token = authorization.substring(6).trim(); // after 'Basic '
+            byte[] decoded = Base64.getDecoder().decode(token);
+            String pair = new String(decoded, StandardCharsets.UTF_8);
+            int idx = pair.indexOf(':');
+            return idx >= 0 ? pair.substring(0, idx) : pair;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private String extractFromBearer(String authorization) {
+        try {
+            String jwt = authorization.substring(7).trim(); // after 'Bearer '
+            return parseJwtUsername(jwt);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private String parseJwtUsername(String jwt) {
+        try {
+            String[] parts = jwt.split("\\.");
+            if (parts.length < 2) return null;
+            String payloadB64 = parts[1];
+            byte[] payloadBytes = Base64.getUrlDecoder().decode(payloadB64);
+            String json = new String(payloadBytes, StandardCharsets.UTF_8);
+            ObjectMapper om = new ObjectMapper();
+            JsonNode node = om.readTree(json);
+            for (String key : props.getUsernameClaimKeys()) {
+                if (node.hasNonNull(key)) {
+                    return node.get(key).asText();
+                }
+            }
+            // common fallbacks
+            if (node.hasNonNull("preferred_username")) return node.get("preferred_username").asText();
+            if (node.hasNonNull("name")) return node.get("name").asText();
+            return null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static String firstNonBlank(String... vals) {
+        if (vals == null) return null;
+        for (String v : vals) {
+            if (v != null && !v.isBlank()) return v;
+        }
+        return null;
     }
 }
