@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class LoggingGlobalFilter implements GlobalFilter, Ordered {
 
-    private static final Logger accessLog = LoggerFactory.getLogger("ACCESS_LOG");
+    private static final Logger accessLog = LoggerFactory.getLogger(LoggingGlobalFilter.class);
 
     private final GatewayLoggingProperties props;
 
