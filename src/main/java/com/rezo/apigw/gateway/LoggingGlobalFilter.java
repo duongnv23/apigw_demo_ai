@@ -207,7 +207,11 @@ public class LoggingGlobalFilter implements GlobalFilter, Ordered {
         }
         // basic masking for form fields in x-www-form-urlencoded
         if (contentType != null && MediaType.APPLICATION_FORM_URLENCODED.isCompatibleWith(contentType)) {
-            return maskFormFields(body, props.getMaskedJsonFields());
+            return maskFormFields(body, props.getMaskedFormFields());
+        }
+        // multipart/form-data masking (text fields only)
+        if (contentType != null && MediaType.MULTIPART_FORM_DATA.isCompatibleWith(contentType)) {
+            return maskMultipartForm(body, contentType, props.getMaskedFormFields());
         }
         return body;
     }
@@ -229,6 +233,110 @@ public class LoggingGlobalFilter implements GlobalFilter, Ordered {
             masked = masked.replaceAll(pattern, "$1$2=****");
         }
         return masked;
+    }
+
+    // Basic, tolerant masking for multipart/form-data bodies. We do not parse fully,
+    // just split by boundary and replace part bodies whose name matches a configured field.
+    private String maskMultipartForm(String raw, MediaType contentType, List<String> fields) {
+        if (raw == null || raw.isEmpty()) return raw;
+        String boundary = null;
+        try {
+            Map<String, String> params = contentType.getParameters();
+            if (params != null) {
+                boundary = params.get("boundary");
+            }
+        } catch (Exception ignored) {}
+        if (boundary == null || boundary.isEmpty()) {
+            // No boundary info; avoid risky logging changes
+            return raw;
+        }
+        String delimiter = "--" + boundary;
+        String closeDelimiter = delimiter + "--";
+        // Normalize to \n processing but preserve original lines when reconstructing
+        String[] parts = raw.split("(?s)" + Pattern.quote(delimiter));
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < parts.length; i++) {
+            String part = parts[i];
+            if (part.isEmpty()) {
+                // the text before the first delimiter
+                out.append(part);
+                continue;
+            }
+            // Append delimiter back (except possibly for the very beginning)
+            out.append(delimiter);
+            // If this is the closing delimiter part, keep as is
+            if (part.startsWith("--")) {
+                out.append(part);
+                continue;
+            }
+            // Try to locate header/body separator (\r\n\r\n or \n\n)
+            int idx = indexOfDoubleNewline(part);
+            if (idx < 0) {
+                out.append(part); // unknown structure
+                continue;
+            }
+            String headers = part.substring(0, idx);
+            String body = part.substring(idx);
+            String name = extractMultipartName(headers);
+            if (name != null && matchesAnyIgnoreCase(name, fields)) {
+                // Replace body content, but preserve leading CRLFs
+                String leading = leadingNewlines(body);
+                out.append(headers).append(leading).append("****");
+                // If original had trailing CRLF before next boundary, try to preserve by ensuring newline end
+                if (!body.endsWith("\r\n") && !body.endsWith("\n")) {
+                    // leave as is
+                }
+            } else {
+                out.append(headers).append(body);
+            }
+        }
+        // Ensure closing delimiter exists if it was present originally (kept by split rebuild)
+        String result = out.toString();
+        // Append close delimiter if raw ended with it but reconstruction missed it (unlikely)
+        if (raw.contains(closeDelimiter) && !result.contains(closeDelimiter)) {
+            if (!result.endsWith("\r\n") && !result.endsWith("\n")) result += "\r\n";
+            result += closeDelimiter;
+        }
+        return result;
+    }
+
+    private int indexOfDoubleNewline(String s) {
+        int idx = s.indexOf("\r\n\r\n");
+        if (idx >= 0) return idx + 4; // position after separator
+        idx = s.indexOf("\n\n");
+        if (idx >= 0) return idx + 2;
+        return -1;
+    }
+
+    private String leadingNewlines(String s) {
+        int i = 0;
+        while (i < s.length()) {
+            char c = s.charAt(i);
+            if (c == '\r' || c == '\n') i++; else break;
+        }
+        return s.substring(0, i);
+    }
+
+    private String extractMultipartName(String headersSection) {
+        // Look for Content-Disposition: form-data; name="field"; filename="..."
+        String[] lines = headersSection.split("\r?\n");
+        for (String line : lines) {
+            String lower = line.toLowerCase(Locale.ROOT);
+            if (lower.startsWith("content-disposition:")) {
+                Matcher m = Pattern.compile(";\\s*name=\"(.*?)\"").matcher(line);
+                if (m.find()) {
+                    return m.group(1);
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean matchesAnyIgnoreCase(String val, List<String> fields) {
+        for (String f : fields) {
+            if (f != null && val != null && f.equalsIgnoreCase(val)) return true;
+        }
+        return false;
     }
 
     private String getOrCreateCorrelationId(HttpHeaders headers) {

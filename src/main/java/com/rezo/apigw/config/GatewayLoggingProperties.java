@@ -20,6 +20,8 @@ public class GatewayLoggingProperties {
     private List<String> maskedHeaders = List.of("authorization", "cookie", "set-cookie");
     /** JSON field names to mask in bodies */
     private List<String> maskedJsonFields = List.of("pass", "old_pass", "new_pass", "otp", "password", "token");
+    /** Form field names to mask in application/x-www-form-urlencoded and multipart/form-data bodies */
+    private List<String> maskedFormFields = List.of("pass", "old_pass", "new_pass", "otp", "password", "token");
     /** Only log body if Content-Type matches these substrings */
     private List<String> contentTypeIncludes = List.of("application/json", "text/plain", "application/x-www-form-urlencoded", "multipart/form-data");
     /** Preferred JWT claim keys to read username from */
@@ -39,6 +41,8 @@ public class GatewayLoggingProperties {
     public void setMaskedHeaders(List<String> maskedHeaders) { this.maskedHeaders = maskedHeaders; }
     public List<String> getMaskedJsonFields() { return maskedJsonFields; }
     public void setMaskedJsonFields(List<String> maskedJsonFields) { this.maskedJsonFields = maskedJsonFields; }
+    public List<String> getMaskedFormFields() { return maskedFormFields; }
+    public void setMaskedFormFields(List<String> maskedFormFields) { this.maskedFormFields = maskedFormFields; }
     public List<String> getContentTypeIncludes() { return contentTypeIncludes; }
     public void setContentTypeIncludes(List<String> contentTypeIncludes) { this.contentTypeIncludes = contentTypeIncludes; }
     public List<String> getUsernameClaimKeys() { return usernameClaimKeys; }
